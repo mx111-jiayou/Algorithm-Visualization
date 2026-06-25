@@ -37,20 +37,21 @@ class SoundService {
   }
 
   // 获取不同类型音效的参数
+  // 频率取自 C 大调音阶，统一使用 sine/triangle 柔和波形，听感更协调悦耳
   getSoundParams(type, options) {
     const defaults = {
-      compare: { frequency: 440, duration: 0.08, waveType: 'sine' },      // A4 - 比较元素
-      swap: { frequency: 660, duration: 0.12, waveType: 'square' },       // E5 - 交换元素
-      sorted: { frequency: 880, duration: 0.15, waveType: 'sine' },       // A5 - 元素已排序
-      complete: { frequency: 1047, duration: 0.3, waveType: 'sine' },     // C6 - 完成
-      error: { frequency: 200, duration: 0.2, waveType: 'square' },       // 错误音效
-      click: { frequency: 600, duration: 0.05, waveType: 'sine' },        // UI点击
-      success: { frequency: 523, duration: 0.2, waveType: 'triangle' },   // C5 - 成功操作
-      move: { frequency: 300, duration: 0.1, waveType: 'sine' },          // 移动元素
-      insert: { frequency: 500, duration: 0.15, waveType: 'triangle' },   // 插入元素
-      delete: { frequency: 350, duration: 0.15, waveType: 'sawtooth' },   // 删除元素
-      visit: { frequency: 400, duration: 0.1, waveType: 'sine' },         // 访问节点
-      found: { frequency: 700, duration: 0.2, waveType: 'triangle' }      // 找到目标
+      compare: { frequency: 587.33, duration: 0.07, waveType: 'sine' },     // D5 - 比较元素（轻快）
+      swap: { frequency: 783.99, duration: 0.11, waveType: 'triangle' },    // G5 - 交换元素
+      sorted: { frequency: 880.00, duration: 0.16, waveType: 'sine' },      // A5 - 元素已排序
+      complete: { frequency: 1046.50, duration: 0.3, waveType: 'sine' },    // C6 - 完成
+      error: { frequency: 261.63, duration: 0.22, waveType: 'triangle' },   // C4 - 柔和的低音提示
+      click: { frequency: 659.25, duration: 0.045, waveType: 'sine' },      // E5 - UI点击（轻触）
+      success: { frequency: 523.25, duration: 0.2, waveType: 'triangle' },  // C5 - 成功操作
+      move: { frequency: 392.00, duration: 0.1, waveType: 'sine' },         // G4 - 移动元素
+      insert: { frequency: 587.33, duration: 0.14, waveType: 'triangle' },  // D5 - 插入元素
+      delete: { frequency: 329.63, duration: 0.14, waveType: 'triangle' },  // E4 - 删除元素
+      visit: { frequency: 440.00, duration: 0.09, waveType: 'sine' },       // A4 - 访问节点
+      found: { frequency: 698.46, duration: 0.2, waveType: 'triangle' }     // F5 - 找到目标
     }
 
     return { ...defaults[type], ...options }
@@ -58,22 +59,30 @@ class SoundService {
 
   // 创建音调
   createTone(frequency, duration, waveType = 'sine') {
+    const now = this.audioContext.currentTime
     const oscillator = this.audioContext.createOscillator()
     const gainNode = this.audioContext.createGain()
+    // 低通滤波，削掉刺耳的高频泛音，使音色更圆润
+    const filter = this.audioContext.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(Math.min(3200, frequency * 4), now)
+    filter.Q.setValueAtTime(0.7, now)
 
-    oscillator.connect(gainNode)
+    oscillator.connect(filter)
+    filter.connect(gainNode)
     gainNode.connect(this.audioContext.destination)
 
     oscillator.type = waveType
-    oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime)
+    oscillator.frequency.setValueAtTime(frequency, now)
 
-    // 音量淡入淡出效果
-    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
-    gainNode.gain.linearRampToValueAtTime(this.volume, this.audioContext.currentTime + 0.01)
-    gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration)
+    // 柔和的包络：快速淡入 + 指数衰减，模拟自然乐音的余韵
+    const peak = Math.max(0.0001, this.volume)
+    gainNode.gain.setValueAtTime(0.0001, now)
+    gainNode.gain.exponentialRampToValueAtTime(peak, now + 0.012)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration)
 
-    oscillator.start(this.audioContext.currentTime)
-    oscillator.stop(this.audioContext.currentTime + duration)
+    oscillator.start(now)
+    oscillator.stop(now + duration + 0.02)
   }
 
   // 播放和弦（用于完成提示）
