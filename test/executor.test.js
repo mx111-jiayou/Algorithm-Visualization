@@ -117,7 +117,7 @@ describe('算法执行器测试', () => {
       for (let i = 0; i < 10; i++) {
         const maze = generateRandomData('maze')
         expect(Array.isArray(maze)).toBe(true)
-        expect(maze.length % 2).toBe(1) // 奇数尺寸
+        expect([6, 8, 10]).toContain(maze.length) // size = 5 + rand(0..2)*2 + 1
         maze.forEach(row => {
           expect(row.length).toBe(maze.length)
           row.forEach(v => expect([0, 1]).toContain(v))

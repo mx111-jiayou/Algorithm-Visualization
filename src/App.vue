@@ -18,6 +18,11 @@
           {{ cat.name }}
         </button>
       </nav>
+      <div class="top-actions">
+        <button class="btn-export" @click="showExportModal = true" title="导出测试历史">
+          📊 导出历史
+        </button>
+      </div>
     </header>
 
     <div class="main-layout">
@@ -154,6 +159,47 @@
         <StepsPanel />
       </aside>
     </div>
+
+    <!-- 导出历史模态框 -->
+    <div v-if="showExportModal" class="export-modal" @click.self="showExportModal = false">
+      <div class="export-modal-content">
+        <div class="export-modal-header">
+          <h3>📊 导出测试历史报告</h3>
+          <button class="btn-close" @click="showExportModal = false">✕</button>
+        </div>
+        <div class="export-modal-body">
+          <div class="export-option">
+            <label>导出范围:</label>
+            <select v-model="exportOptions.exportRange">
+              <option value="all">全部记录</option>
+              <option value="recent10">最近10条</option>
+              <option value="recent20">最近20条</option>
+              <option value="recent50">最近50条</option>
+            </select>
+          </div>
+          <div class="export-option">
+            <label>
+              <input type="checkbox" v-model="exportOptions.includeSteps" />
+              包含详细步骤
+            </label>
+          </div>
+          <div class="export-option">
+            <label>每条记录最大步骤数:</label>
+            <input type="number" v-model.number="exportOptions.maxSteps" min="1" max="100" />
+          </div>
+          <div class="export-preview">
+            <h4>预览统计:</h4>
+            <p>总记录数: {{ historyRecords.length }} 条</p>
+            <p>测试算法数: {{ Object.keys(algorithmStats).length }} 种</p>
+          </div>
+        </div>
+        <div class="export-modal-footer">
+          <button class="btn btn-cancel" @click="showExportModal = false">取消</button>
+          <button class="btn btn-primary" @click="exportHistory">导出Markdown文档</button>
+          <button class="btn btn-secondary" @click="viewHistory">查看历史记录</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -162,6 +208,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAlgorithmStore } from './store/algorithmStore'
 import { algorithmRegistry, categories } from './algorithms/registry'
 import { executeAlgorithm, generateRandomData } from './algorithms/executor'
+import { historyService } from './utils/historyService'
 import VisualizationCanvas from './components/VisualizationCanvas.vue'
 import CodePanel from './components/CodePanel.vue'
 import StepsPanel from './components/StepsPanel.vue'
@@ -174,10 +221,26 @@ const graphSource = ref(0)
 const graphEdgesInput = ref('')
 const numberInput = ref(3)
 const stringInput = ref('')
+const showExportModal = ref(false)
+const exportOptions = ref({
+  exportRange: 'all',
+  includeSteps: true,
+  maxSteps: 20
+})
 
 const currentAlgo = computed(() => store.currentAlgoId ? algorithmRegistry[store.currentAlgoId] : null)
 const currentCategoryAlgos = computed(() => {
   return Object.values(algorithmRegistry).filter(a => a.category === activeCategory.value)
+})
+
+// 历史记录相关
+const historyRecords = computed(() => historyService.getAllRecords())
+const algorithmStats = computed(() => {
+  const stats = {}
+  historyRecords.value.forEach(record => {
+    stats[record.algorithm] = (stats[record.algorithm] || 0) + 1
+  })
+  return stats
 })
 
 function selectAlgorithm(algo) {
@@ -198,8 +261,27 @@ function selectAlgorithm(algo) {
 }
 
 function runAlgorithm(data) {
+  const startTime = Date.now()
   const steps = executeAlgorithm(store.currentAlgoId, data)
+  const endTime = Date.now()
   store.setSteps(steps)
+  
+  // 记录到历史
+  if (currentAlgo.value) {
+    historyService.addRecord({
+      algorithm: store.currentAlgoId,
+      algorithmName: currentAlgo.value.name,
+      category: currentAlgo.value.category,
+      inputData: data,
+      inputType: currentAlgo.value.inputType,
+      steps: steps,
+      totalSteps: steps.length,
+      timeComplexity: currentAlgo.value.timeComplexity,
+      spaceComplexity: currentAlgo.value.spaceComplexity,
+      duration: endTime - startTime,
+      description: `执行${currentAlgo.value.name}算法`
+    })
+  }
 }
 
 function applyArrayInput() {
@@ -262,6 +344,49 @@ function toggleSound() {
 function setVolume(value) {
   const volume = parseInt(value) / 100
   store.setSoundVolume(volume)
+}
+
+// 导出历史记录
+function exportHistory() {
+  const options = {
+    title: '算法可视化测试历史报告',
+    includeSteps: exportOptions.value.includeSteps,
+    maxSteps: exportOptions.value.maxSteps
+  }
+
+  // 根据选择范围调整导出选项
+  if (exportOptions.value.exportRange === 'recent10') {
+    options.recentCount = 10
+  } else if (exportOptions.value.exportRange === 'recent20') {
+    options.recentCount = 20
+  } else if (exportOptions.value.exportRange === 'recent50') {
+    options.recentCount = 50
+  }
+
+  // 导出并下载Markdown文件
+  const content = historyService.downloadMarkdown(options)
+  
+  // 关闭模态框
+  showExportModal.value = false
+  
+  // 提示用户
+  alert('历史记录已导出为Markdown文档！')
+}
+
+// 查看历史记录
+function viewHistory() {
+  // 这里可以打开一个新的页面或模态框来显示详细的历史记录
+  // 为了简单，我们先打印到控制台
+  console.log('历史记录:', historyRecords.value)
+  alert(`共有 ${historyRecords.value.length} 条历史记录\n请在浏览器控制台查看详细数据`)
+}
+
+// 清空历史记录
+function clearHistory() {
+  if (confirm('确定要清空所有历史记录吗？')) {
+    historyService.clearHistory()
+    alert('历史记录已清空')
+  }
 }
 
 // 键盘快捷键
@@ -719,5 +844,224 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
   gap: 12px;
   padding: 12px;
   overflow: hidden;
+}
+
+/* 导出按钮和模态框样式 */
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-export {
+  padding: 8px 16px;
+  background: var(--gold);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-export:hover {
+  background: var(--gold-light);
+  transform: translateY(-2px);
+}
+
+.export-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.export-modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.export-modal-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.export-modal-header h3 {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: var(--bg-panel);
+  color: var(--text);
+}
+
+.export-modal-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.export-option {
+  margin-bottom: 16px;
+}
+
+.export-option label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.export-option select,
+.export-option input[type="number"] {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.export-option input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.export-preview {
+  margin-top: 20px;
+  padding: 12px;
+  background: var(--bg-panel);
+  border-radius: 8px;
+}
+
+.export-preview h4 {
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.export-preview p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.export-modal-footer {
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.export-modal-footer .btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-dark);
+  color: var(--text);
+}
+
+.btn-primary {
+  background: var(--gold);
+  border: none;
+  color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+  background: var(--gold-light);
+}
+
+.btn-secondary {
+  background: var(--bg-dark);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-panel);
+}
+
+/* 移动端导出模态框适配 */
+@media (max-width: 768px) {
+  .top-actions {
+    position: fixed;
+    top: 12px;
+    right: 60px;
+    z-index: 1000;
+  }
+
+  .btn-export {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .export-modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .export-modal-header {
+    padding: 15px;
+  }
+
+  .export-modal-body {
+    padding: 15px;
+  }
+
+  .export-modal-footer {
+    padding: 15px;
+    flex-wrap: wrap;
+  }
+
+  .export-modal-footer .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
 }
 </style>
