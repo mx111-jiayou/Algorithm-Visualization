@@ -46,18 +46,97 @@
 
 ---
 
-## 🛠 技术栈
+## 🛠 技术栈与版本说明
 
-| 类别 | 技术 | 说明 |
-| --- | --- | --- |
-| 前端框架 | Vue 3（`<script setup>`） | 组合式API，更简洁的代码 |
-| 状态管理 | Pinia | 全局状态管理，步骤/播放控制 |
-| 构建工具 | Vite 6 | 快速开发服务器和构建 |
-| 可视化 | Canvas 2D API | 原生绘图，高性能渲染 |
-| 音效系统 | Web Audio API | 实时音效生成和播放 |
-| 数据存储 | localStorage | 历史记录持久化存储 |
-| 测试框架 | Vitest | 单元测试和集成测试 |
-| 字体 | Inter / Cormorant Garamond / JetBrains Mono | 优雅的字体组合 |
+### 核心技术栈
+
+| 类别 | 技术 | 版本 | 说明 |
+| --- | --- | --- | --- |
+| **运行环境** | Node.js | v18+ | JavaScript运行时环境 |
+| **包管理器** | npm | v9+ | Node包管理工具 |
+| **前端框架** | Vue | v3.5.13 | 渐进式JavaScript框架（Composition API） |
+| **状态管理** | Pinia | v2.3.0 | Vue官方状态管理库 |
+| **路由管理** | Vue Router | v4.5.0 | Vue官方路由管理器 |
+| **构建工具** | Vite | v6.0.0 | 下一代前端构建工具 |
+| **测试框架** | Vitest | v2.1.8 | Vite原生单元测试框架 |
+| **可视化** | Canvas 2D API | - | 原生绘图API |
+| **音效系统** | Web Audio API | - | 浏览器原生音频API |
+| **数据存储** | localStorage | - | 浏览器本地存储API |
+
+### 开发环境配置
+
+```json
+{
+  "dependencies": {
+    "vue": "^3.5.13",         // Vue 3 Composition API
+    "vue-router": "^4.5.0",   // SPA路由管理
+    "pinia": "^2.3.0"         // 全局状态管理
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",  // Vite Vue插件
+    "vite": "^6.0.0",                // 构建工具
+    "vitest": "^2.1.8"               // 测试框架
+  }
+}
+```
+
+### 编程规范与最佳实践
+
+#### 1. 代码风格规范
+- **ES6+ 语法**：使用现代JavaScript特性（箭头函数、模块化、解构赋值等）
+- **Vue 3 Composition API**：使用 `<script setup>` 语法糖，代码更简洁
+- **函数式编程**：使用纯函数，避免副作用
+- **模块化设计**：单一职责原则，组件/函数职责清晰
+
+#### 2. 组件化开发规范
+```
+src/
+├── components/        # 可复用UI组件
+│   ├── VisualizationCanvas.vue  # 单一职责：可视化渲染
+│   ├── CodePanel.vue            # 单一职责：代码展示
+│   └── StepsPanel.vue           # 单一职责：步骤列表
+├── algorithms/        # 算法逻辑模块
+│   ├── registry.js              # 算法注册表
+│   ├── executor.js              # 执行调度器
+│   ├── sorting.js               # 排序算法实现
+│   ├── graph.js                 # 图算法实现
+│   └── dataStructures.js        # 数据结构实现
+├── store/             # 状态管理
+│   └── algorithmStore.js        # 全局状态（步骤、播放控制）
+└── utils/             # 工具函数
+    ├── soundService.js          # 音效服务
+    └── historyService.js        # 历史记录服务
+```
+
+#### 3. 注释规范
+```javascript
+/**
+ * 执行冒泡排序算法，生成可视化步骤序列
+ * @param {Array<number>} arr - 待排序数组
+ * @returns {Array<Object>} 步骤序列，每步包含数组状态和说明
+ */
+function bubbleSort(arr) {
+  // 步骤1：初始化
+  const steps = []
+  // 步骤2：遍历数组进行比较
+  for (let i = 0; i < arr.length; i++) {
+    // ... 算法实现
+  }
+  return steps
+}
+```
+
+#### 4. 错误处理规范
+```javascript
+// 输入验证
+function runAlgorithm(data) {
+  if (!Array.isArray(data) || data.length === 0) {
+    console.warn('Invalid input: expected non-empty array')
+    return []
+  }
+  // ... 算法执行
+}
+```
 
 ---
 
@@ -65,38 +144,231 @@
 
 ### 环境要求
 
-- Node.js >= 18
-- npm / pnpm / yarn
+#### 必需环境
+- **Node.js**: v18.0.0 或更高版本
+  - 下载地址: https://nodejs.org/
+  - 验证安装: `node --version`
+  
+- **npm**: v9.0.0 或更高版本（随Node.js安装）
+  - 验证安装: `npm --version`
+
+#### 推荐环境
+- **VSCode**: 最新版本 + Volar插件（Vue 3语法高亮）
+- **浏览器**: Chrome 90+ / Firefox 88+ / Safari 14+（支持现代Web API）
+
+#### 操作系统支持
+- Windows 10/11
+- macOS 10.15+
+- Linux (Ubuntu 18.04+, Debian 10+)
 
 ### 安装与运行
 
+#### 步骤1：环境验证
 ```bash
-# 克隆项目
+# 检查Node.js版本（需要v18+）
+node --version
+# 输出示例: v18.17.0
+
+# 检查npm版本（需要v9+）
+npm --version
+# 输出示例: v9.6.7
+```
+
+#### 步骤2：克隆项目
+```bash
+# 从GitHub克隆
 git clone https://github.com/mx111-jiayou/Algorithm-Visualization.git
 
-# 进入目录
-cd Algorithm-Visualization
+# 或从Gitee克隆（国内更快）
+git clone https://gitee.com/mx111jiayou/algorithm-visualization.git
 
-# 安装依赖
+# 进入项目目录
+cd Algorithm-Visualization
+```
+
+#### 步骤3：安装依赖
+```bash
+# 安装所有依赖包（首次运行必须）
 npm install
 
-# 启动开发服务器（默认 http://localhost:5173）
+# 安装过程输出示例：
+# added 312 packages in 15s
+# 
+# 主要依赖：
+# - vue@3.5.13
+# - pinia@2.3.0
+# - vite@6.0.0
+# - vitest@2.1.8
+```
+
+#### 步骤4：启动开发服务器
+```bash
+# 启动Vite开发服务器（支持热重载）
 npm run dev
 
-# 构建生产版本（输出到 dist/）
+# 输出示例：
+#   VITE v6.0.0  ready in 500 ms
+# 
+#   ➜  Local:   http://localhost:5173/
+#   ➜  Network: http://192.168.1.100:5173/
+#   ➜  press h + enter to show help
+```
+
+#### 步骤5：访问应用
+- 打开浏览器访问: http://localhost:5173/
+- 推荐浏览器: Chrome 90+ / Firefox 88+ / Safari 14+
+
+#### 步骤6：构建生产版本（可选）
+```bash
+# 构建优化后的生产版本
 npm run build
+
+# 输出示例：
+# dist/index.html                  0.45 kB
+# dist/assets/index-abc123.css     5.23 kB
+# dist/assets/index-def456.js      120 kB
+# 
+# 构建完成时间: 10s
 
 # 本地预览构建产物
 npm run preview
+# 访问: http://localhost:4173/
+```
 
-# 运行测试
+#### 步骤7：运行测试（可选）
+```bash
+# 运行所有单元测试
 npm run test
+
+# 输出示例：
+#  ✓ test/sorting.test.js (25)
+#  ✓ test/graph.test.js (20)
+#  ✓ test/dataStructures.test.js (30)
+# 
+#  Tests  75 passed (75)
+#  Duration  2.5s
+
+# 监听模式（开发时使用）
+npm run test:watch
 ```
 
 ### 在线访问
 
 - **GitHub Pages**: https://mx111-jiayou.github.io/Algorithm-Visualization/
 - **Gitee Pages**: https://mx111jiayou.gitee.io/algorithm-visualization/
+
+### 常见问题与解决方案
+
+#### Q1: Node.js版本过低怎么办？
+```bash
+# 检查当前版本
+node --version
+
+# 如果版本低于v18，请升级Node.js：
+# Windows/Mac: 从 https://nodejs.org/ 下载最新LTS版本
+# Linux: 使用nvm工具安装
+nvm install 18
+nvm use 18
+```
+
+#### Q2: npm install失败怎么办？
+```bash
+# 清除npm缓存
+npm cache clean --force
+
+# 使用国内镜像源（推荐）
+npm config set registry https://registry.npmmirror.com
+
+# 重新安装
+npm install
+```
+
+#### Q3: 开发服务器启动失败？
+```bash
+# 检查端口占用（5173端口）
+netstat -ano | findstr :5173  # Windows
+lsof -i :5173                 # Mac/Linux
+
+# 使用其他端口启动
+npm run dev -- --port 5174
+```
+
+#### Q4: 构建后页面空白？
+```bash
+# 检查dist目录是否生成
+ls dist/
+
+# 使用preview命令预览（而非直接打开dist/index.html）
+npm run preview
+```
+
+#### Q5: 测试运行失败？
+```bash
+# 检查vitest配置
+cat vitest.config.js
+
+# 单独运行某个测试文件
+npm run test sorting.test.js
+```
+
+---
+
+### 编译运行完整流程总结
+
+#### 最小运行步骤（快速体验）
+```bash
+# 1. 安装Node.js 18+
+# 2. 克隆项目
+git clone https://gitee.com/mx111jiayou/algorithm-visualization.git
+cd algorithm-visualization
+
+# 3. 安装依赖
+npm install
+
+# 4. 启动服务器
+npm run dev
+
+# 5. 浏览器访问 http://localhost:5173
+```
+
+#### 完整开发流程（推荐）
+```bash
+# 1. 环境准备
+node --version  # 确认Node.js 18+
+npm --version   # 确认npm 9+
+
+# 2. 获取源码
+git clone https://github.com/mx111-jiayou/Algorithm-Visualization.git
+cd Algorithm-Visualization
+
+# 3. 安装依赖
+npm install
+
+# 4. 开发调试
+npm run dev      # 启动开发服务器
+npm run test     # 运行测试验证
+
+# 5. 构建发布
+npm run build    # 构建生产版本
+npm run preview  # 预览构建结果
+
+# 6. 部署上线
+# 将dist/目录内容上传到服务器或GitHub Pages
+```
+
+#### 项目运行验证清单
+- ✅ Node.js v18+ 已安装
+- ✅ npm v9+ 已安装
+- ✅ 项目依赖已安装（npm install）
+- ✅ 开发服务器启动成功（http://localhost:5173）
+- ✅ 页面正常显示（顶部导航、左侧控制面板、中间画布）
+- ✅ 算法选择和播放功能正常
+- ✅ Canvas动画正常渲染
+- ✅ 音效播放正常（Web Audio API）
+- ✅ 历史记录导出功能正常
+- ✅ 测试全部通过（75+用例）
+
+---
 
 ---
 
