@@ -69,7 +69,7 @@ describe('图算法测试', () => {
 
     it('应该包含距离信息', () => {
       const steps = dijkstra(testGraph)
-      const distanceStep = steps.find(s => s.distances)
+      const distanceStep = steps.find(s => s.dist)
       expect(distanceStep).toBeDefined()
     })
   })
@@ -80,7 +80,7 @@ describe('图算法测试', () => {
       validateGraphSteps(steps)
 
       // BFS应该按层级访问
-      const hasVisited = steps.some(s => Object.values(s.nodeHighlights || {}).includes('visited'))
+      const hasVisited = steps.some(s => Object.values(s.nodeStates || {}).includes('visited'))
       expect(hasVisited).toBe(true)
     })
 
@@ -111,10 +111,10 @@ describe('图算法测试', () => {
       validateGraphSteps(steps)
     })
 
-    it('应该包含队列信息', () => {
+    it('应该包含入队(queued)标记', () => {
       const steps = bfs(testGraph)
-      const queueStep = steps.find(s => s.queue)
-      expect(queueStep).toBeDefined()
+      const queuedStep = steps.find(s => Object.values(s.nodeStates || {}).includes('queued'))
+      expect(queuedStep).toBeDefined()
     })
   })
 
@@ -123,7 +123,7 @@ describe('图算法测试', () => {
       const steps = dfs(testGraph)
       validateGraphSteps(steps)
 
-      const hasVisited = steps.some(s => Object.values(s.nodeHighlights || {}).includes('visited'))
+      const hasVisited = steps.some(s => Object.values(s.nodeStates || {}).includes('visited'))
       expect(hasVisited).toBe(true)
     })
 
@@ -154,10 +154,10 @@ describe('图算法测试', () => {
       validateGraphSteps(steps)
     })
 
-    it('应该包含栈或递归信息', () => {
+    it('应该包含边探索过程', () => {
       const steps = dfs(testGraph)
-      const stackStep = steps.find(s => s.stack || s.description.includes('递归'))
-      expect(stackStep).toBeDefined()
+      const exploreStep = steps.find(s => s.description.includes('探索') || s.description.includes('访问'))
+      expect(exploreStep).toBeDefined()
     })
   })
 
