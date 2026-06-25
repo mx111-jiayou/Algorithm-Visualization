@@ -1,0 +1,54 @@
+:root {
+  /* 大理石奢华 (Marble Luxury) */
+  --bg-dark: #F8F6F3;
+  --bg-card: #FFFFFF;
+  --bg-panel: #EFEAE2;
+  --bg-input: #FFFFFF;
+  --primary: #1A1A1A;
+  --primary-hover: #333333;
+  --accent: #C9A96E;
+  --accent-hover: #B8945A;
+  --success: #85BD73;
+  --danger: #C0564B;
+  --warning: #C9A96E;
+  --info: #8A7968;
+  --text-primary: #1A1A1A;
+  --text-secondary: #8A7968;
+  --text-muted: #A89B8C;
+  --border: #E8E0D6;
+  --border-focus: #C9A96E;
+  --gold: #C9A96E;
+  --taupe: #8A7968;
+  --marble-light: #E8E0D6;
+  --highlight-compare: #C9A96E;
+  --highlight-swap: #C0564B;
+  --highlight-current: #1A1A1A;
+  --highlight-visited: #85BD73;
+  --highlight-pivot: #8A7968;
+  --highlight-default: #A89B8C;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Microsoft YaHei', 'Segoe UI', -apple-system, sans-serif;
+  background-color: var(--bg-dark);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(138, 121, 104, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(201, 169, 110, 0.03) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(138, 121, 104, 0.04) 0%, transparent 45%);
+  color: var(--text-primary);
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#app { width: 100%; height: 100vh; overflow: hidden; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-panel); }
+::-webkit-scrollbar-thumb { background: var(--taupe); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
