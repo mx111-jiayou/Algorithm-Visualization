@@ -19,13 +19,26 @@
         </button>
       </nav>
       <div class="top-actions">
+        <button
+          class="btn-compare"
+          :class="{ active: compareMode }"
+          @click="toggleCompareMode"
+          title="算法对比"
+        >
+          ⚖ 算法对比
+        </button>
         <button class="btn-export" @click="showExportModal = true" title="导出测试历史">
           📊 导出历史
         </button>
       </div>
     </header>
 
-    <div class="main-layout">
+    <!-- 算法对比视图 -->
+    <div v-if="compareMode" class="compare-view">
+      <AlgorithmCompare />
+    </div>
+
+    <div v-else class="main-layout">
       <!-- 左侧控制面板 -->
       <aside class="left-panel">
         <!-- 算法选择 -->
@@ -212,9 +225,15 @@ import { historyService } from './utils/historyService'
 import VisualizationCanvas from './components/VisualizationCanvas.vue'
 import CodePanel from './components/CodePanel.vue'
 import StepsPanel from './components/StepsPanel.vue'
+import AlgorithmCompare from './components/AlgorithmCompare.vue'
 
 const store = useAlgorithmStore()
 const activeCategory = ref('sort')
+const compareMode = ref(false)
+
+function toggleCompareMode() {
+  compareMode.value = !compareMode.value
+}
 const arrayInput = ref('')
 const graphNodes = ref(5)
 const graphSource = ref(0)
@@ -867,6 +886,37 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 .btn-export:hover {
   background: var(--gold-light);
   transform: translateY(-2px);
+}
+
+/* 算法对比按钮 */
+.btn-compare {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-compare:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-compare.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* 对比视图 */
+.compare-view {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .export-modal {
