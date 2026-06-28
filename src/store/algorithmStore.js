@@ -92,7 +92,7 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
       soundService.playSound('delete')
     } else if (desc.includes('访问') || desc.includes('Visit')) {
       soundService.playSound('visit')
-    } else if (desc.includes('找到') || desc.includes('Found')) {
+    } else if (desc.includes('找到') || desc.includes('Found') || desc.includes('到达')) {
       soundService.playSound('found')
     } else if (desc.includes('完成') || desc.includes('Complete')) {
       soundService.playCompleteSound()
@@ -106,6 +106,21 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
       soundService.playSound('insert')
     } else if (desc.includes('Dequeue') || desc.includes('出队')) {
       soundService.playSound('delete')
+    } else if (desc.includes('覆盖')) {
+      // 棋盘覆盖：每次覆盖L型骨牌
+      soundService.playSound('insert')
+    } else if (desc.includes('着色成功')) {
+      // 图着色：成功着色
+      soundService.playSound('success')
+    } else if (desc.includes('尝试给') || desc.includes('着色')) {
+      // 图着色：尝试着色
+      soundService.playSound('compare')
+    } else if (desc.includes('探索')) {
+      // 迷宫求解：探索新位置
+      soundService.playSound('visit')
+    } else if (desc.includes('回溯')) {
+      // 迷宫求解/图着色：回溯
+      soundService.playSound('error')
     } else if (step.highlights && Object.keys(step.highlights).length > 0) {
       // 有高亮标记的步骤，默认播放操作音效
       const highlightTypes = Object.values(step.highlights)

@@ -162,6 +162,127 @@ export function bfs(graphData) {
   return steps
 }
 
+// 邻接矩阵构建过程可视化
+export function adjacencyMatrix(graphData) {
+  const { nodes, edges } = graphData
+  const n = nodes
+  const INF = Infinity
+  // 初始化矩阵
+  const matrix = Array.from({ length: n }, () => Array(n).fill(INF))
+  const steps = []
+
+  steps.push({
+    type: 'graph', nodes: n, edges: [...edges],
+    nodeStates: {}, edgeStates: {},
+    matrix: matrix.map(row => row.map(v => v === INF ? null : v)),
+    description: `初始化 ${n}×${n} 邻接矩阵，全部填 ∞（表示不相连）`,
+    codeLine: 0
+  })
+
+  // 对角线置0
+  for (let i = 0; i < n; i++) {
+    matrix[i][i] = 0
+  }
+  steps.push({
+    type: 'graph', nodes: n, edges: [...edges],
+    nodeStates: {}, edgeStates: {},
+    matrix: matrix.map(row => row.map(v => v === INF ? null : v)),
+    matrixHighlight: { row: -1, col: -1, diag: true },
+    description: `主对角线 matrix[i][i] = 0（顶点到自身距离为0）`,
+    codeLine: 0
+  })
+
+  // 逐条边填充矩阵
+  edges.forEach(([u, v, w], idx) => {
+    const ns = { [u]: 'current', [v]: 'current' }
+    const es = { [idx]: 'relaxed' }
+    steps.push({
+      type: 'graph', nodes: n, edges: [...edges],
+      nodeStates: ns, edgeStates: es,
+      matrix: matrix.map(row => row.map(v => v === INF ? null : v)),
+      matrixHighlight: { row: u, col: v },
+      description: `处理边 ${String.fromCharCode(65+u)}→${String.fromCharCode(65+v)} (权值${w})`,
+      codeLine: 1
+    })
+
+    matrix[u][v] = w
+    matrix[v][u] = w  // 无向图对称
+    steps.push({
+      type: 'graph', nodes: n, edges: [...edges],
+      nodeStates: ns, edgeStates: es,
+      matrix: matrix.map(row => row.map(v => v === INF ? null : v)),
+      matrixHighlight: { row: u, col: v, symmetric: { row: v, col: u } },
+      description: `matrix[${String.fromCharCode(65+u)}][${String.fromCharCode(65+v)}] = ${w}，matrix[${String.fromCharCode(65+v)}][${String.fromCharCode(65+u)}] = ${w}（无向图对称）`,
+      codeLine: 2
+    })
+  })
+
+  steps.push({
+    type: 'graph', nodes: n, edges: [...edges],
+    nodeStates: {}, edgeStates: {},
+    matrix: matrix.map(row => row.map(v => v === INF ? null : v)),
+    description: `邻接矩阵构建完成。空间复杂度 O(n²=${n*n})，适合稠密图`,
+    codeLine: 3
+  })
+
+  return steps
+}
+
+// 邻接链表构建过程可视化
+export function adjacencyList(graphData) {
+  const { nodes, edges } = graphData
+  const n = nodes
+  // 每个顶点对应一个链表
+  const adjList = Array.from({ length: n }, () => [])
+  const steps = []
+
+  steps.push({
+    type: 'graph', nodes: n, edges: [...edges],
+    nodeStates: {}, edgeStates: {},
+    adjList: adjList.map(list => [...list]),
+    description: `初始化 ${n} 个顶点的邻接链表头节点（均为空链表）`,
+    codeLine: 0
+  })
+
+  // 逐条边构建链表
+  edges.forEach(([u, v, w], idx) => {
+    const ns = { [u]: 'current', [v]: 'current' }
+    const es = { [idx]: 'relaxed' }
+
+    steps.push({
+      type: 'graph', nodes: n, edges: [...edges],
+      nodeStates: ns, edgeStates: es,
+      adjList: adjList.map(list => [...list]),
+      adjListHighlight: { vertex: u, newNode: v },
+      description: `处理边 ${String.fromCharCode(65+u)}→${String.fromCharCode(65+v)} (权值${w})`,
+      codeLine: 1
+    })
+
+    // 头插法：插入到 u 的链表头部
+    adjList[u].unshift({ vex: v, weight: w })
+    adjList[v].unshift({ vex: u, weight: w })  // 无向图
+
+    steps.push({
+      type: 'graph', nodes: n, edges: [...edges],
+      nodeStates: ns, edgeStates: es,
+      adjList: adjList.map(list => [...list]),
+      adjListHighlight: { vertex: u, newNode: v, symmetric: true },
+      description: `在 ${String.fromCharCode(65+u)} 的链表头部插入节点 ${String.fromCharCode(65+v)}；同时在 ${String.fromCharCode(65+v)} 的链表头部插入节点 ${String.fromCharCode(65+u)}（无向图对称）`,
+      codeLine: 2
+    })
+  })
+
+  steps.push({
+    type: 'graph', nodes: n, edges: [...edges],
+    nodeStates: {}, edgeStates: {},
+    adjList: adjList.map(list => [...list]),
+    description: `邻接链表构建完成。空间复杂度 O(n+e=${n+edges.length})，适合稀疏图`,
+    codeLine: 3
+  })
+
+  return steps
+}
+
 export function dfs(graphData) {
   const { nodes, edges } = graphData
   const n = nodes

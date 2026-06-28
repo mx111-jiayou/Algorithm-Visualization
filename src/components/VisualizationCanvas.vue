@@ -59,8 +59,11 @@ function render() {
   const h = canvasRef.value.style.height ? parseInt(canvasRef.value.style.height) : 500
   ctx.clearRect(0, 0, w, h)
 
-  if (props.step.type === 'graph' || props.algoId === 'bfs' || props.algoId === 'dfs' || props.algoId === 'dijkstra' ||
-      props.algoId === 'adjacency-matrix' || props.algoId === 'adjacency-list') {
+  if (props.algoId === 'adjacency-matrix') {
+    renderAdjacencyMatrix(ctx, w, h, props.step)
+  } else if (props.algoId === 'adjacency-list') {
+    renderAdjacencyList(ctx, w, h, props.step)
+  } else if (props.step.type === 'graph' || props.algoId === 'bfs' || props.algoId === 'dfs' || props.algoId === 'dijkstra') {
     renderGraph(ctx, w, h, props.step)
   } else if (props.step.type === 'hanoi' || props.algoId === 'hanoi') {
     renderHanoi(ctx, w, h, props.step)
@@ -189,6 +192,202 @@ function renderGraph(ctx, w, h, step) {
       ctx.fillStyle = '#C9A96E'
       ctx.font = '11px Consolas'
       ctx.fillText('d=' + dText, p.x, p.y + 34)
+    }
+    ctx.textBaseline = 'alphabetic'
+  }
+}
+
+// ========== 邻接矩阵 ==========
+function renderAdjacencyMatrix(ctx, w, h, step) {
+  const matrix = step.matrix
+  if (!matrix) return
+  const n = matrix.length
+  const highlight = step.matrixHighlight || {}
+
+  // 标题
+  ctx.fillStyle = '#5A4A3A'
+  ctx.font = 'bold 18px Microsoft YaHei'
+  ctx.textAlign = 'center'
+  ctx.fillText('邻接矩阵存储结构', w / 2, 30)
+
+  // 计算矩阵布局
+  const titlePad = 50
+  const bottomPad = 30
+  const availH = h - titlePad - bottomPad
+  const cellSize = Math.min(40, Math.floor(Math.min(w * 0.7, availH * 0.85) / (n + 1)))
+  const matrixW = cellSize * (n + 1)
+  const matrixH = cellSize * (n + 1)
+  const startX = (w - matrixW) / 2
+  const startY = titlePad + (availH - matrixH) / 2
+
+  // 表头背景
+  ctx.fillStyle = '#F3EFE9'
+  ctx.fillRect(startX, startY, matrixW, matrixH)
+
+  // 单元格
+  for (let i = 0; i <= n; i++) {
+    for (let j = 0; j <= n; j++) {
+      const x = startX + j * cellSize
+      const y = startY + i * cellSize
+
+      // 单元格背景
+      let fill = '#FFFFFF'
+      if (i === 0 && j === 0) {
+        fill = '#6D5D4B'  // 左上角
+      } else if (i === 0 || j === 0) {
+        fill = '#C9A96E'  // 表头
+      } else {
+        // 检查高亮
+        if (highlight.diag && i === j) {
+          fill = '#FFE4B5'
+        } else if (highlight.row === i - 1 && highlight.col === j - 1) {
+          fill = '#FF6B6B'
+        } else if (highlight.symmetric && highlight.symmetric.row === i - 1 && highlight.symmetric.col === j - 1) {
+          fill = '#FFB6B6'
+        }
+      }
+      ctx.fillStyle = fill
+      ctx.fillRect(x, y, cellSize, cellSize)
+      ctx.strokeStyle = '#8A7968'
+      ctx.lineWidth = 1
+      ctx.strokeRect(x, y, cellSize, cellSize)
+
+      // 内容
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      if (i === 0 && j === 0) {
+        ctx.fillStyle = '#FFFFFF'
+        ctx.font = 'bold 12px Consolas'
+        ctx.fillText('M', x + cellSize / 2, y + cellSize / 2)
+      } else if (i === 0) {
+        ctx.fillStyle = '#FFFFFF'
+        ctx.font = 'bold 14px Consolas'
+        ctx.fillText(String.fromCharCode(65 + j - 1), x + cellSize / 2, y + cellSize / 2)
+      } else if (j === 0) {
+        ctx.fillStyle = '#FFFFFF'
+        ctx.font = 'bold 14px Consolas'
+        ctx.fillText(String.fromCharCode(65 + i - 1), x + cellSize / 2, y + cellSize / 2)
+      } else {
+        const val = matrix[i - 1][j - 1]
+        ctx.fillStyle = (highlight.row === i - 1 && highlight.col === j - 1) ? '#FFFFFF' : '#5A4A3A'
+        ctx.font = 'bold 14px Consolas'
+        ctx.fillText(val === null ? '∞' : String(val), x + cellSize / 2, y + cellSize / 2)
+      }
+      ctx.textBaseline = 'alphabetic'
+    }
+  }
+}
+
+// ========== 邻接链表 ==========
+function renderAdjacencyList(ctx, w, h, step) {
+  const adjList = step.adjList
+  if (!adjList) return
+  const n = adjList.length
+  const highlight = step.adjListHighlight || {}
+
+  // 标题
+  ctx.fillStyle = '#5A4A3A'
+  ctx.font = 'bold 18px Microsoft YaHei'
+  ctx.textAlign = 'center'
+  ctx.fillText('邻接链表存储结构', w / 2, 30)
+
+  const titlePad = 50
+  const bottomPad = 30
+  const availH = h - titlePad - bottomPad
+  const rowH = Math.min(40, Math.floor(availH / n))
+  const headW = 50
+  const arrowW = 25
+  const nodeW = 50
+  const nodeH = Math.min(rowH - 6, 32)
+  const startY = titlePad + (availH - rowH * n) / 2
+
+  for (let i = 0; i < n; i++) {
+    const y = startY + i * rowH
+    const cy = y + rowH / 2
+
+    // 头节点
+    const isHeadActive = highlight.vertex === i
+    ctx.fillStyle = isHeadActive ? '#FF6B6B' : '#C9A96E'
+    ctx.fillRect(20, y + (rowH - nodeH) / 2, headW, nodeH)
+    ctx.strokeStyle = '#6D5D4B'
+    ctx.lineWidth = 1.5
+    ctx.strokeRect(20, y + (rowH - nodeH) / 2, headW, nodeH)
+    ctx.fillStyle = '#FFFFFF'
+    ctx.font = 'bold 13px Consolas'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(`[${i}] ${String.fromCharCode(65 + i)}`, 20 + headW / 2, cy)
+
+    // 箭头
+    let curX = 20 + headW
+    ctx.strokeStyle = '#8A7968'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(curX, cy)
+    ctx.lineTo(curX + arrowW - 5, cy)
+    ctx.stroke()
+    // 箭头头
+    ctx.beginPath()
+    ctx.moveTo(curX + arrowW - 5, cy - 4)
+    ctx.lineTo(curX + arrowW, cy)
+    ctx.lineTo(curX + arrowW - 5, cy + 4)
+    ctx.fillStyle = '#8A7968'
+    ctx.fill()
+    curX += arrowW
+
+    // 链表节点
+    const list = adjList[i]
+    if (list.length === 0) {
+      ctx.fillStyle = '#A89B8C'
+      ctx.font = '12px Microsoft YaHei'
+      ctx.textAlign = 'left'
+      ctx.fillText('^ (空链表)', curX, cy)
+    } else {
+      list.forEach((node, idx) => {
+        const isNewNode = highlight.vertex === i && highlight.newNode === node.vex && idx === 0
+        ctx.fillStyle = isNewNode ? '#FF6B6B' : '#F3EFE9'
+        ctx.fillRect(curX, y + (rowH - nodeH) / 2, nodeW, nodeH)
+        ctx.strokeStyle = isNewNode ? '#FF6B6B' : '#8A7968'
+        ctx.lineWidth = isNewNode ? 2.5 : 1.5
+        ctx.strokeRect(curX, y + (rowH - nodeH) / 2, nodeW, nodeH)
+        // 节点内容：邻接顶点 | 权值
+        ctx.strokeStyle = '#8A7968'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(curX + nodeW * 0.6, y + (rowH - nodeH) / 2)
+        ctx.lineTo(curX + nodeW * 0.6, y + (rowH - nodeH) / 2 + nodeH)
+        ctx.stroke()
+        ctx.fillStyle = '#5A4A3A'
+        ctx.font = 'bold 12px Consolas'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(`${String.fromCharCode(65 + node.vex)}`, curX + nodeW * 0.3, cy)
+        ctx.fillText(`${node.weight}`, curX + nodeW * 0.8, cy)
+
+        // 下一个箭头
+        curX += nodeW
+        if (idx < list.length - 1) {
+          ctx.strokeStyle = '#8A7968'
+          ctx.lineWidth = 1.5
+          ctx.beginPath()
+          ctx.moveTo(curX, cy)
+          ctx.lineTo(curX + arrowW - 5, cy)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(curX + arrowW - 5, cy - 4)
+          ctx.lineTo(curX + arrowW, cy)
+          ctx.lineTo(curX + arrowW - 5, cy + 4)
+          ctx.fillStyle = '#8A7968'
+          ctx.fill()
+          curX += arrowW
+        } else {
+          // 末尾 ^ 表示 NULL
+          ctx.fillStyle = '#A89B8C'
+          ctx.font = '12px Consolas'
+          ctx.textAlign = 'left'
+          ctx.fillText('^', curX + 5, cy)
+        }
+      })
     }
     ctx.textBaseline = 'alphabetic'
   }

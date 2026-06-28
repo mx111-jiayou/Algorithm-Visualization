@@ -1,6 +1,6 @@
 // 算法执行器 - 根据算法ID调用对应算法生成步骤
 import { bubbleSort, quickSort, insertionSort, shellSort, selectionSort, mergeSort } from './sorting'
-import { dijkstra, bfs, dfs } from './graph'
+import { dijkstra, bfs, dfs, adjacencyMatrix, adjacencyList } from './graph'
 import { hanoi, chessboardCover, graphColoring, mazeSolve } from './recursion'
 import { linearListSteps, stackQueueSteps, treeSteps } from './dataStructures'
 
@@ -17,7 +17,9 @@ export function executeAlgorithm(algoId, inputData) {
   const graphAlgos = {
     'dijkstra': dijkstra,
     'bfs': bfs,
-    'dfs': dfs
+    'dfs': dfs,
+    'adjacency-matrix': adjacencyMatrix,
+    'adjacency-list': adjacencyList
   }
 
   const linearListAlgos = [
