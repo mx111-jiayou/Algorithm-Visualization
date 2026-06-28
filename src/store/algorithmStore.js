@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { algorithmRegistry } from '../algorithms/registry'
 import { soundService } from '../utils/soundService'
+import { getExplanation, hasTeachingContent } from '../utils/teachingContent'
 
 export const useAlgorithmStore = defineStore('algorithm', () => {
   // 当前算法ID
@@ -18,6 +19,8 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
   const inputData = ref(null)
   // 音效启用状态
   const soundEnabled = ref(true)
+  // 讲解模式启用状态
+  const teachingMode = ref(false)
   // 计时器
   let timer = null
 
@@ -35,6 +38,22 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
     if (totalSteps.value === 0) return '步骤 0 / 0'
     return `步骤 ${currentStep.value + 1} / ${totalSteps.value}`
   })
+
+  // 当前算法是否支持讲解模式
+  const hasTeaching = computed(() => {
+    return currentAlgoId.value ? hasTeachingContent(currentAlgoId.value) : false
+  })
+
+  // 当前步骤的讲解内容
+  const currentExplanation = computed(() => {
+    if (!teachingMode.value || !stepInfo.value || !currentAlgoId.value) return null
+    const codeLine = stepInfo.value.codeLine ?? 0
+    return getExplanation(currentAlgoId.value, codeLine)
+  })
+
+  function setTeachingMode(enabled) {
+    teachingMode.value = enabled
+  }
 
   function setAlgorithm(id) {
     stopTimer()
@@ -214,9 +233,10 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
 
   return {
     currentAlgoId, playState, currentStep, steps, playSpeed, inputData, soundEnabled,
+    teachingMode, hasTeaching, currentExplanation,
     totalSteps, stepInfo, progressText,
     setAlgorithm, setSteps, setInputData,
     play, pause, togglePlay, stepForward, stepBack, reset, setSpeed,
-    setSoundEnabled, setSoundVolume
+    setSoundEnabled, setSoundVolume, setTeachingMode
   }
 })

@@ -27,6 +27,15 @@
         >
           ⚖ 算法对比
         </button>
+        <button
+          class="btn-teaching"
+          :class="{ active: store.teachingMode, disabled: !store.hasTeaching }"
+          :disabled="!store.hasTeaching"
+          @click="toggleTeachingMode"
+          :title="store.hasTeaching ? '题目讲解模式' : '当前算法暂无讲解'"
+        >
+          📚 讲解模式
+        </button>
         <button class="btn-export" @click="showExportModal = true" title="导出测试历史">
           📊 导出历史
         </button>
@@ -173,6 +182,9 @@
       </aside>
     </div>
 
+    <!-- 题目讲解面板（讲解模式下显示） -->
+    <ExplanationPanel />
+
     <!-- 导出历史模态框 -->
     <div v-if="showExportModal" class="export-modal" @click.self="showExportModal = false">
       <div class="export-modal-content">
@@ -226,6 +238,7 @@ import VisualizationCanvas from './components/VisualizationCanvas.vue'
 import CodePanel from './components/CodePanel.vue'
 import StepsPanel from './components/StepsPanel.vue'
 import AlgorithmCompare from './components/AlgorithmCompare.vue'
+import ExplanationPanel from './components/ExplanationPanel.vue'
 
 const store = useAlgorithmStore()
 const activeCategory = ref('sort')
@@ -233,6 +246,11 @@ const compareMode = ref(false)
 
 function toggleCompareMode() {
   compareMode.value = !compareMode.value
+}
+
+function toggleTeachingMode() {
+  if (!store.hasTeaching) return
+  store.setTeachingMode(!store.teachingMode)
 }
 const arrayInput = ref('')
 const graphNodes = ref(5)
@@ -909,6 +927,36 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+/* 讲解模式按钮 */
+.btn-teaching {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-teaching:hover:not(.disabled):not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn-teaching.active {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.2);
+}
+
+.btn-teaching.disabled,
+.btn-teaching:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* 对比视图 */
