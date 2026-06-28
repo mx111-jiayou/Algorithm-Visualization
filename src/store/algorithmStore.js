@@ -21,6 +21,10 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
   const soundEnabled = ref(true)
   // 讲解模式启用状态
   const teachingMode = ref(false)
+  // Toast 提示列表
+  const toasts = ref([])
+  // toast 自增 id
+  let toastId = 0
   // 计时器
   let timer = null
 
@@ -53,6 +57,25 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
 
   function setTeachingMode(enabled) {
     teachingMode.value = enabled
+  }
+
+  // Toast 提示：type = error | warning | success | info
+  function showToast(message, type = 'error', duration = 3000) {
+    const id = ++toastId
+    toasts.value.push({ id, message, type })
+    if (duration > 0) {
+      setTimeout(() => removeToast(id), duration)
+    }
+    return id
+  }
+
+  function removeToast(id) {
+    const idx = toasts.value.findIndex(t => t.id === id)
+    if (idx !== -1) toasts.value.splice(idx, 1)
+  }
+
+  function clearToasts() {
+    toasts.value = []
   }
 
   function setAlgorithm(id) {
@@ -234,9 +257,11 @@ export const useAlgorithmStore = defineStore('algorithm', () => {
   return {
     currentAlgoId, playState, currentStep, steps, playSpeed, inputData, soundEnabled,
     teachingMode, hasTeaching, currentExplanation,
+    toasts,
     totalSteps, stepInfo, progressText,
     setAlgorithm, setSteps, setInputData,
     play, pause, togglePlay, stepForward, stepBack, reset, setSpeed,
-    setSoundEnabled, setSoundVolume, setTeachingMode
+    setSoundEnabled, setSoundVolume, setTeachingMode,
+    showToast, removeToast, clearToasts
   }
 })

@@ -185,6 +185,9 @@
     <!-- 题目讲解面板（讲解模式下显示） -->
     <ExplanationPanel />
 
+    <!-- Toast 提示 -->
+    <Toast />
+
     <!-- 导出历史模态框 -->
     <div v-if="showExportModal" class="export-modal" @click.self="showExportModal = false">
       <div class="export-modal-content">
@@ -234,11 +237,13 @@ import { useAlgorithmStore } from './store/algorithmStore'
 import { algorithmRegistry, categories } from './algorithms/registry'
 import { executeAlgorithm, generateRandomData } from './algorithms/executor'
 import { historyService } from './utils/historyService'
+import { validateArray, validateGraph, validateNumber, validateString } from './utils/inputValidator'
 import VisualizationCanvas from './components/VisualizationCanvas.vue'
 import CodePanel from './components/CodePanel.vue'
 import StepsPanel from './components/StepsPanel.vue'
 import AlgorithmCompare from './components/AlgorithmCompare.vue'
 import ExplanationPanel from './components/ExplanationPanel.vue'
+import Toast from './components/Toast.vue'
 
 const store = useAlgorithmStore()
 const activeCategory = ref('sort')
@@ -322,25 +327,39 @@ function runAlgorithm(data) {
 }
 
 function applyArrayInput() {
-  const arr = arrayInput.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
-  if (arr.length > 0) runAlgorithm(arr)
+  const result = validateArray(arrayInput.value, store.currentAlgoId)
+  if (!result.valid) {
+    store.showToast(result.error, 'error')
+    return
+  }
+  runAlgorithm(result.data)
 }
 
 function applyGraphInput() {
-  const edges = graphEdgesInput.value.trim().split('\n')
-    .map(line => line.trim().split(',').map(s => parseInt(s.trim())))
-    .filter(e => e.length >= 3 && !e.some(isNaN))
-  if (edges.length > 0) {
-    runAlgorithm({ nodes: graphNodes.value, edges })
+  const result = validateGraph(graphNodes.value, graphEdgesInput.value, graphSource.value)
+  if (!result.valid) {
+    store.showToast(result.error, 'error')
+    return
   }
+  runAlgorithm(result.data)
 }
 
 function applyNumberInput() {
-  runAlgorithm(numberInput.value)
+  const result = validateNumber(numberInput.value, store.currentAlgoId)
+  if (!result.valid) {
+    store.showToast(result.error, 'error')
+    return
+  }
+  runAlgorithm(result.data)
 }
 
 function applyStringInput() {
-  if (stringInput.value.trim()) runAlgorithm(stringInput.value.trim())
+  const result = validateString(stringInput.value, store.currentAlgoId)
+  if (!result.valid) {
+    store.showToast(result.error, 'error')
+    return
+  }
+  runAlgorithm(result.data)
 }
 
 function randomData() {
